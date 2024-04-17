@@ -22,6 +22,8 @@ from recurrentgemma.torch import array_typing as at
 import torch
 from torch import nn
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 _MAX_SQRT_GRADIENT = 1000.0
 
@@ -312,13 +314,23 @@ class RGLRU(nn.Module):
     reset = segment_pos == 0
 
     # Gates for x and a.
-    gate_x = torch.sigmoid(self.input_gate(x))
-    gate_a = torch.sigmoid(self.a_gate(x))
+    gate_x = torch.sigmoid(self.input_gate(x))  # i_t
+    gate_a = torch.sigmoid(self.a_gate(x))  # r_t
+
+    # print(f"{gate_a.shape=}")
+    # print(gate_a)
+    # print(f"{self.a_param.shape=}")
+    # print(self.a_param)
 
     # Compute the parameter `A` of the recurrence.
     log_a = -8.0 * gate_a * nn.functional.softplus(self.a_param)
-    a = torch.exp(log_a)
+    a = torch.exp(log_a)  # (b, L, d)
     a_square = torch.exp(2 * log_a)
+    # print(f"{a.shape=}")
+    # print(a)
+
+    # sns.scatterplot(self.a_param.data.cpu().float().numpy())
+    # plt.show()
 
     # Gate the input.
     gated_x = x * gate_x
@@ -335,7 +347,7 @@ class RGLRU(nn.Module):
         reset=reset,
         h0=prev_h,
     )
-    return y, last_h
+    return y, last_h, a
 
   @classmethod
   def init_cache(

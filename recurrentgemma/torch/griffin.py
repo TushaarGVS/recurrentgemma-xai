@@ -100,6 +100,7 @@ class Griffin(nn.Module):
         cache: Cache | None = None,
         x_cache=None,
         decoded_toks_cache=None,
+        a_cache=None
     ) -> tuple[at.TokenLogits, Cache]:
         """Calls Griffin.
 
@@ -122,7 +123,7 @@ class Griffin(nn.Module):
         decoded_toks_ = [vocab.DecodeIds(_) for _ in toks_]
         decoded_toks_cache = decoded_toks_ if decoded_toks_cache is None else decoded_toks_cache + decoded_toks_
 
-        all_layer_sims, all_layer_probs, yticklabels_rec, yticklabels_attn = [], [], [], []
+        all_layer_sims, all_a_vals, all_layer_probs, yticklabels_rec, yticklabels_attn = [], [], [], [], []
         new_cache = {}
         for i, block in enumerate(self.blocks):
             block_name = f"blocks.{i}"
@@ -154,6 +155,9 @@ class Griffin(nn.Module):
                 # print(f"{sims.shape=}")
                 all_layer_sims.append(sims.cpu().unsqueeze(0))  # (1, L)
                 yticklabels_rec.append(i)
+
+                a = torch.mean(new_cache[block_name].a[0], dim=-1)  # (b=1, L, e=2560) -> (L,)
+                all_a_vals.append(a.cpu().unsqueeze(0))  # (1, L)
             else:
                 attn_probs = new_cache[block_name].probs[0]  # (num_heads, L=1, L)
                 attn_probs = torch.mean(attn_probs, dim=0)[:, 1:]  # (L=1, L-1)
@@ -178,28 +182,53 @@ class Griffin(nn.Module):
         # print(f"next_tok={next_tok.cpu().tolist()}, decoded_next_tok={vocab.DecodeIds(next_tok.cpu().tolist())}")
         print(f"next_tok={vocab.DecodeIds(next_tok.cpu().tolist())}")
 
-        print("recurrence =>")
+        all_a_vals = torch.cat(all_a_vals, dim=0).float()  # (num_recurrent_blocks, L)
+        a_cache = all_a_vals if a_cache is None else torch.cat([a_cache, all_a_vals], dim=1)
+
+        print("rg-lru a =>")
+        plt.figure(figsize=(8, 5))
+        sns.heatmap(a_cache.numpy(), xticklabels=decoded_toks_cache, yticklabels=yticklabels_rec)
+        plt.xticks(rotation=90)
+        plt.show()
+
+        print("layer-mean [rg-lru a] =>")
+        plt.figure(figsize=(8, 0.4))
+        sns.heatmap(
+            torch.mean(a_cache, dim=0, keepdim=True).numpy(),
+            xticklabels=decoded_toks_cache,
+            yticklabels=["  "],
+        )
+        plt.xticks(rotation=90)
+        plt.show()
+
+        print("\n--\n")
+
+        print("sim(rnn hidden state, x) =>")
         plt.figure(figsize=(8, 5))
         all_layer_sims = torch.cat(all_layer_sims, dim=0).float()  # (num_recurrent_blocks, L)
         sns.heatmap(all_layer_sims.numpy(), xticklabels=decoded_toks_cache, yticklabels=yticklabels_rec)
         plt.xticks(rotation=90)
         plt.show()
 
+        print("layer-mean [sim(rnn hidden state, x)] =>")
         plt.figure(figsize=(8, 0.4))
         sns.heatmap(torch.mean(all_layer_sims, dim=0).unsqueeze(0), xticklabels=decoded_toks_cache, yticklabels=["  "])
         plt.xticks(rotation=90)
         plt.show()
 
-        print("attn =>")
+        print("\n--\n")
+
         all_layer_probs = torch.cat(all_layer_probs, dim=0).float()  # (num_attn_blocks, 1, L-1)
         if not prompt_pass:
-            plt.figure(figsize=(8, 5))
+            print("attn =>")
+            plt.figure(figsize=(8, 4))
             sns.heatmap(
                 all_layer_probs.squeeze(1).numpy(), xticklabels=decoded_toks_cache[1:], yticklabels=yticklabels_attn
             )
             plt.xticks(rotation=90)
             plt.show()
 
+        print("layer-mean [attn] =>")
         yticklabels = decoded_toks_cache if prompt_pass else [decoded_toks_cache[-1]]
         if prompt_pass:
             plt.figure(figsize=(8, 5))
@@ -209,11 +238,9 @@ class Griffin(nn.Module):
         plt.xticks(rotation=90)
         plt.show()
 
-
-
         print("\n==END==\n")
 
-        return logits, new_cache, x_cache, decoded_toks_cache
+        return logits, new_cache, x_cache, decoded_toks_cache, a_cache
 
     def init_cache(
         self,

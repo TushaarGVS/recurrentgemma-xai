@@ -47,6 +47,7 @@ class _SamplingState(NamedTuple):
   logits_buffer: at.TokenLogits | None = None
   x_cache: torch.Tensor = None
   decoded_toks_cache: list[int] = None
+  a_cache: torch.Tensor = None
 
 
 class SamplerOutput(NamedTuple):
@@ -103,12 +104,13 @@ class Sampler:
     last_token = sampler_state.token_buffer[:, decoding_step]
     last_token = last_token[:, None]
 
-    logits, cache, x_cache, decoded_toks_cache = self.model(
+    logits, cache, x_cache, decoded_toks_cache, a_cache = self.model(
         last_token,
         sampler_state.positions + decoding_step,
         sampler_state.cache,
         sampler_state.x_cache,
         sampler_state.decoded_toks_cache,
+        sampler_state.a_cache
     )
 
     next_token_candidate = torch.argmax(logits, axis=-1)  # [B, 1]
@@ -134,6 +136,7 @@ class Sampler:
         total_sampling_steps=sampler_state.total_sampling_steps,
         x_cache=x_cache,
         decoded_toks_cache=decoded_toks_cache,
+        a_cache=a_cache,
     )
 
   @at.typed
@@ -151,6 +154,7 @@ class Sampler:
       include_logits: bool = False,
       x_cache=None,
       decoded_toks_cache=None,
+      a_cache=None,
   ) -> _SamplingState:
     """Initializes the sampling state given input prompts."""
     buffer_size = total_sampling_steps + 1
@@ -187,6 +191,7 @@ class Sampler:
         ),
         x_cache=x_cache,
         decoded_toks_cache=decoded_toks_cache,
+        a_cache=a_cache,
     )
 
   @at.typed
@@ -276,7 +281,7 @@ class Sampler:
     positions = positions - prompt_length + input_lengths[:, None]
     positions = torch.clip(positions, min=0)
 
-    logits, cache, x_cache, decoded_toks_cache = self.model(
+    logits, cache, x_cache, decoded_toks_cache, a_cache = self.model(
         tokens=padded_tokens,
         segment_pos=positions,
     )
@@ -293,6 +298,7 @@ class Sampler:
         include_logits=return_logits,
         x_cache=x_cache,
         decoded_toks_cache=decoded_toks_cache,
+        a_cache=a_cache,
     )
 
     sampling_state = self._sample_fn(initial_sampling_state)

@@ -38,6 +38,7 @@ class RecurrentBlockCache(NamedTuple):
 
   rg_lru_state: at.RNNState
   conv1d_state: at.Conv1DState
+  a: torch.Tensor = None
 
 
 @at.typed
@@ -569,7 +570,7 @@ class RecurrentBlock(nn.Module):
         segment_pos=segment_pos,
         state=None if cache is None else cache.conv1d_state,
     )
-    x, rg_lru_state = self.rg_lru(
+    x, rg_lru_state, a = self.rg_lru(
         x=x,
         segment_pos=segment_pos,
         prev_h=None if cache is None else cache.rg_lru_state,
@@ -582,6 +583,7 @@ class RecurrentBlock(nn.Module):
     return x, RecurrentBlockCache(
         conv1d_state=conv1d_state,
         rg_lru_state=rg_lru_state,
+        a=a,
     )
 
   @classmethod
