@@ -24,6 +24,9 @@ from recurrentgemma.torch import layers
 import torch
 from torch import nn
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 _MIN_LOGITS_VALUE = -2.3819763e38  # Set to a large negative number.
 _MAX_WAVELENGTH = 10_000
@@ -44,6 +47,10 @@ class AttentionBlockCache(NamedTuple):
   keys: at.CachedKeys
   values: at.CachedValues
   num_tokens: at.NumTokens
+  probs: torch.Tensor = None
+
+  def set_probs(self, probs):
+      self.probs = probs
 
 
 ResidualBlockCache = RecurrentBlockCache | AttentionBlockCache
@@ -335,6 +342,7 @@ class LocalAttentionBlock(nn.Module):
       x: at.Activations,
       segment_pos: at.SegmentPos,
       cache: AttentionBlockCache | None = None,
+      xticklabels=None,
   ) -> tuple[at.Activations, AttentionBlockCache]:
     """Calls the local attention block.
 
@@ -392,6 +400,29 @@ class LocalAttentionBlock(nn.Module):
     masked_logits = masked_logits.type(torch.float32)
 
     probs = nn.functional.softmax(masked_logits, dim=-1).type_as(x)
+
+    if cache is not None:
+    #     plt.figure(figsize=(8, 0.4))
+        plt_probs = probs[:, :, :, -new_cache.num_tokens:]
+    #     yticklabels = [xticklabels[-1]]
+    else:
+    #     plt.figure(figsize=(8, 5))
+        plt_probs = probs
+    #     yticklabels = xticklabels
+    # # TG: remove attention "sink" weight on the first token
+    # sns.heatmap(
+    #     torch.mean(plt_probs[0], dim=0)[:, 1:].cpu().float().numpy(),
+    #     xticklabels=xticklabels[1:],
+    #     yticklabels=yticklabels,
+    # )
+    # plt.show()
+    new_cache = AttentionBlockCache(
+      keys=new_cache.keys,
+      values=new_cache.values,
+      num_tokens=new_cache.num_tokens,
+      probs=plt_probs,
+    )
+
     encoded = einops.einsum(probs, values, "b n t s, b s n h -> b t n h")
     encoded = einops.rearrange(
         encoded, "... n h -> ... (n h)", n=self.num_heads
@@ -513,6 +544,7 @@ class RecurrentBlock(nn.Module):
       x: at.Activations,
       segment_pos: at.SegmentPos,
       cache: RecurrentBlockCache | None = None,
+      xticklabels=None,
   ) -> tuple[at.Activations, RecurrentBlockCache]:
     """Calls the recurrent block.
 
@@ -757,6 +789,7 @@ class ResidualBlock(nn.Module):
       x: at.Activations,
       segment_pos: at.SegmentPos,
       cache: ResidualBlockCache | None = None,
+      xticklabels=None,
   ) -> tuple[at.Activations, ResidualBlockCache]:
     """Calls the residual block.
 
@@ -773,7 +806,7 @@ class ResidualBlock(nn.Module):
     raw_x = x
 
     inputs_normalized = self.temporal_pre_norm(raw_x)
-    x, cache = self.temporal_block(inputs_normalized, segment_pos, cache)
+    x, cache = self.temporal_block(inputs_normalized, segment_pos, cache, xticklabels)
 
     residual = x + raw_x
 
