@@ -32,7 +32,7 @@ class ScanType(enum.Enum):
     """Which Jax implementation to use for the scan in the RG-LRU in Jax.
 
     On TPUs Pallas is faster, hence when using `AUTO` the code will pick Pallas
-    automatically if you are running on a TPU device and otherwise will fallback
+    automatically if you are running on a TPU device and otherwise will fall back
     to the NATIVE Jax for loop.
     """
 
@@ -121,7 +121,7 @@ class GriffinConfig(NamedTuple):
 
     Attributes:
       vocab_size: The number of tokens in the vocabulary.
-      width: The dimenonality of the model, e.g. the dimensonality of the
+      width: The dimensionality of the model, e.g. the dimensionality of the
         embeddings and the output of each layer.
       mlp_expanded_width: The width of the hidden layer in the MLP block.
       num_heads: The number of heads for the attention block and the number of
@@ -240,7 +240,7 @@ class GriffinConfig(NamedTuple):
             containing a key 'params' corresponding to the actual parameters) to use
             to reconstruct the config.
           preset: The expected preset from which the parameters have been derived.
-            If this is set values for hyper parameters that can't be inferred from
+            If this is set values for hyperparameters that can't be inferred from
             the parameter, such as `embeddings_scale_by_sqrt_dim`,
             `attention_window_size`, `logits_soft_cap`, `scan_type`, will be taken
             from the preset, unless the corresponding argument to this method is
@@ -298,7 +298,7 @@ class GriffinConfig(NamedTuple):
 
             else:
                 raise ValueError(
-                    f"Can't recongnize the type of blocks.{i} with keys"
+                    f"Can't recognize the type of blocks.{i} with keys"
                     f"{block_params.keys()}."
                 )
 
@@ -337,7 +337,7 @@ class GriffinConfig(NamedTuple):
         Args:
           params: The Pytorch parameters to use to reconstruct the config.
           preset: The expected preset from which the parameters have been derived.
-            If this is set values for hyper parameters that can't be inferred from
+            If this is set values for hyperparameters that can't be inferred from
             the parameter, such as `embeddings_scale_by_sqrt_dim`,
             `attention_window_size`, `logits_soft_cap`, `scan_type, will be taken
             from the preset, unless the corresponding argument to this method is
@@ -389,7 +389,7 @@ class GriffinConfig(NamedTuple):
                 num_heads = width // heads_dim
 
             else:
-                raise ValueError(f"Can't recongnize the type of blocks.{i}.")
+                raise ValueError(f"Can't recognize the type of blocks.{i}.")
 
             i += 1
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Griffin and Hawk"s model components."""
+"""Griffin and Hawk's model components."""
 
 import math
 from typing import Literal, NamedTuple, overload
@@ -57,7 +57,7 @@ def _apply_rope(
     """Applies RoPE to the first half of inputs.
 
     Args:
-      inputs: Queries or keys..
+      inputs: Queries or keys.
       positions: Positions of each token in the sequence.
       max_wavelength: The maximum wavelength used for the sin and cos.
 
@@ -201,7 +201,7 @@ def _update_attention_cache(
     n_fill = min(window_size, seq_len)
 
     if n_fill == 1:
-        # Autogregressive sampling.
+        # Autoregressive sampling.
         idx0 = torch.arange(keys.shape[0], device=keys.device)
         idx1 = cache.num_tokens % window_size
         cache.keys[idx0, idx1] = keys[:, 0]
@@ -308,7 +308,7 @@ class LocalAttentionBlock(nn.Module):
             layer of the block.
           device: On what device to initialize parameters. Needed to allow for
             initializing the module without parameter initialization.
-          dtype: What dtype to use for initialziation.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -401,7 +401,7 @@ class LocalAttentionBlock(nn.Module):
         Args:
           x: Sequence of input activations.
           segment_pos: Positions of each token in the sequence.
-          cache: Optiona KV-cache for the block, of previous keys and values.
+          cache: Optional KV-cache for the block, of previous keys and values.
           return_cache: Whether to compute and return the updated cache.
 
         Returns:
@@ -507,7 +507,7 @@ class RecurrentBlock(nn.Module):
             layer of the block.
           device: On what device to initialize parameters. Needed to allow for
             initializing the module without parameter initialization.
-          dtype: What dtype to use for initialziation.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -687,7 +687,7 @@ class MLPBlock(nn.Module):
             layer of the block.
           device: On what device to initialize parameters. Needed to allow for
             initializing the module without parameter initialization.
-          dtype: What dtype to use for initialziation.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -770,7 +770,7 @@ class ResidualBlock(nn.Module):
             initializations of the sub blocks.
           device: On what device to initialize parameters. Needed to allow for
             initializing the module without parameter initialization.
-          dtype: What dtype to use for initialziation.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -950,7 +950,7 @@ class Embedder(nn.Module):
             `sqrt(self.embed_dim)`
           device: On what device to initialize parameters. Needed to allow for
             initializing the module without parameter initialization.
-          dtype: What dtype to use for initialziation.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.vocab_size = vocab_size

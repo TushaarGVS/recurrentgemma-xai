@@ -44,8 +44,8 @@ class Griffin(nn.Module):
           gradient_checkpointing: Whether to apply gradient checkpointing on every
             residual block.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.config = config
@@ -140,7 +140,7 @@ class Griffin(nn.Module):
         Args:
           tokens: Sequence of input tokens.
           segment_pos: Positions of each token in the sequence.
-          cache: Optiona for the model.
+          cache: Optional for the model.
           return_logits: Whether to compute and return the logits.
           return_cache: Whether to compute and return the updated cache.
 

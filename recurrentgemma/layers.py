@@ -43,8 +43,8 @@ class RMSNorm(nn.Module):
           width: The number of dimensions of the input and output.
           eps: Small constant added to the square root when normalizing.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -90,8 +90,8 @@ class BlockDiagonalLinear(nn.Module):
           w_init_variance_scale: A parameters that scales the variance of the
             initialization of the weights.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -201,7 +201,7 @@ def rnn_param_init(
     """Initializes the `A` parameter of the RG-LRU uniformly on a ring."""
     with torch.no_grad():
         # Proportional to area in a ring.
-        # 0.5 * jnp.log(unif * (max_rad**2 - min_rad**2) + min_rad**2 + 1e-8)
+        # 0.5 * jnp.log(uniform * (max_rad**2 - min_rad**2) + min_rad**2 + 1e-8)
         tensor.uniform_(min_rad**2 + eps, max_rad**2 + eps)
         tensor.log_().mul_(0.5)
 
@@ -250,8 +250,8 @@ class RGLRU(nn.Module):
             BlockDiagonalLinear layers of the gates. See the `BlockDiagonalLinear`
             layer for details.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -395,8 +395,8 @@ class Conv1D(nn.Module):
           w_init_variance_scale: A parameter that scales the variance of the
             initialization of the weights.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.width = width
@@ -667,8 +667,8 @@ class Einsum(nn.Module):
           w_init_variance_scale: A parameters that scales the variance of the
             initialization of the weights.
           device: On what device to initialize parameters. Needed to allow for
-            initializing the module without parameter initialzation.
-          dtype: What dtype to use for initialziation.
+            initializing the module without parameter initialization.
+          dtype: What dtype to use for initialization.
         """
         super().__init__()
         self.w_shape = tuple(w_shape)

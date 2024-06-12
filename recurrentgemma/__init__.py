@@ -15,3 +15,45 @@
 """RecurrentGemma public library."""
 
 __version__ = "0.1.0"
+
+from recurrentgemma import common, griffin, layers, modules, sampler
+
+ScanType = common.ScanType
+TemporalBlockType = common.TemporalBlockType
+GriffinConfig = common.GriffinConfig
+rnn_scan = layers.rnn_scan
+BlockDiagonalLinear = layers.BlockDiagonalLinear
+RGLRU = layers.RGLRU
+Conv1D = layers.Conv1D
+RecurrentBlockCache = modules.RecurrentBlockCache
+RecurrentBlock = modules.RecurrentBlock
+AttentionBlockCache = modules.AttentionBlockCache
+LocalAttentionBlock = modules.LocalAttentionBlock
+ResidualBlockCache = modules.ResidualBlockCache
+ResidualBlock = modules.ResidualBlock
+Griffin = griffin.Griffin
+Sampler = sampler.Sampler
+
+__all__ = (
+    "ScanType",
+    "TemporalBlockType",
+    "rnn_scan",
+    "BlockDiagonalLinear",
+    "RGLRU",
+    "Conv1D",
+    "RecurrentBlockCache",
+    "RecurrentBlock",
+    "AttentionBlockCache",
+    "LocalAttentionBlock",
+    "ResidualBlockCache",
+    "ResidualBlock",
+    "GriffinConfig",
+    "Griffin",
+    "Sampler",
+)
+
+# Prevents from accessing anything except the exported symbols
+try:
+    del common, griffin, layers, modules, sampler
+except NameError:
+    pass
